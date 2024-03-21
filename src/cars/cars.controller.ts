@@ -1,50 +1,38 @@
 // src/vehicle/vehicle.controller.ts
 
 import { Controller, Get, Post, Put, Delete, Body, Param } from '@nestjs/common';
-import { Car } from '../models/car.model';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Car, CarDocument } from '../data-base/car.schema';
 
 @Controller('cars')
 export class CarsController {
-    private cars: Car[] = [
-        { id: 1, make: 'Toyota', model: 'Corolla', year: 2020, color: 'Blue' },
-        { id: 2, make: 'Honda', model: 'Civic', year: 2019, color: 'Red' },
-        { id: 3, make: 'Ford', model: 'Fusion', year: 2021, color: 'White' },
-    ];
+  constructor(@InjectModel(Car.name) private carModel: Model<CarDocument>) {}
 
-    @Get()
-    findAll(): Car[] {
-        return this.cars;
-    }
+  @Get()
+  async findAll(): Promise<Car[]> {
+    return this.carModel.find().exec();
+  }
 
-    @Get(':id')
-    findOne(@Param('id') id: number): Car {
-        return this.cars.find(car => car.id === id);
-    }
+  @Get(':id')
+  async findOne(@Param('id') id: string): Promise<Car> {
+    return this.carModel.findById(id).exec();
+  }
 
-    @Post()
-    create(@Body() car: Car): Car {
-        this.cars.push(car);
-        return car;
-    }
+  @Post()
+  async create(@Body() car: Car): Promise<Car> {
+    const createdCar = new this.carModel(car);
+    return createdCar.save();
+  }
 
-    @Put(':id')
-    update(@Param('id') id: number, @Body() updatedCar: Car): Car {
-        const index = this.cars.findIndex(car => car.id === id);
-        if (index !== -1) {
-            this.cars[index] = updatedCar;
-            return updatedCar;
-        }
-        return null;
-    }
+  @Put(':id')
+  async update(@Param('id') id: string, @Body() updatedCar: Car): Promise<Car> {
+    return this.carModel.findOneAndUpdate({ _id: id }, updatedCar, { new: true }).exec();
+  }
 
-    @Delete(':id')
-    delete(@Param('id') id: number): Car {
-        const index = this.cars.findIndex(car => car.id === id);
-        if (index !== -1) {
-            const deletedCar = this.cars[index];
-            this.cars.splice(index, 1);
-            return deletedCar;
-        }
-        return null;
-    }
+  @Delete(':id')
+  async delete(@Param('id') id: string): Promise<Car> {
+    return this.carModel.findOneAndDelete({ _id: id }).exec();
+  }
+  
 }

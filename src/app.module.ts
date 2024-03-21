@@ -1,12 +1,16 @@
+// src/app.module.ts
+
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { MongooseModule } from '@nestjs/mongoose';
 import { CarsController } from './cars/cars.controller';
-import { Car } from './models/car.model'; // Import the Car entity if needed
+import { DatabaseModule } from './data-base/database.module';
+import {Car, CarSchema } from './data-base/car.schema';
 
 @Module({
-  imports: [],
-  controllers: [ CarsController],
-  providers: [],
+  imports: [
+    DatabaseModule,
+    MongooseModule.forFeature([{ name: Car.name, schema: CarSchema }])
+  ],
+  controllers: [CarsController],
 })
 export class AppModule {}
